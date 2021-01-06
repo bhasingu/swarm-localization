@@ -1,0 +1,136 @@
+define camera_model camera
+(
+  # laser properties
+  resolution [ 2 1 ]
+  range [ 0.2 8.0 ]
+  fov [ 300 40.0 ]
+  pantilt [ 0.0 0.0 ]
+
+  # model properties
+  size [ 0.001 0.001 0.001 ]
+  color "black"
+  watts 100.0 # TODO find watts for sony pan-tilt camera
+)
+
+define blinkelight_model blinkenlight
+(
+# generic model properties
+size3 [0.02 0.02 0.02]
+
+# type-specific properties
+period 250
+dutycycle 1.0
+enabled 1
+)
+
+define fiducial_model fiducial
+(
+  # fiducial properties
+  range_min 0.0
+  range_max 8.0
+  range_max_id 5.0
+  fov 3.14159
+  ignore_zloc 0
+
+  # model properties
+  size [ 0.100 0.100 0.100 ]
+)
+
+define block model
+(
+  size [0.5 0.5 0.5]
+  gui_nose 0
+)
+
+define miniblock model
+(
+  size [0.005 0.005 0.010]
+  gui_nose 0
+  color "black"
+)
+
+define topurg ranger
+(
+	sensor(
+    pose [ 0 0 0 0 ]
+    range [ 0.0  0.5 ]
+    fov 135
+    samples 1000
+  )
+
+  # generic model properties
+  color "black"
+  size [ 0.001 0.001 0.001 ]
+)
+
+
+# mROBerto
+
+define mroberto position
+(
+  size [0.050 0.050 0.001]
+  origin [0.000 0.000 0.000 0.000]
+
+  gui_nose 1
+  drive "diff"
+  topurg(pose [ 0.000 0.000 0.000 0.000 ])
+  miniblock(pose [ 0.010 0.000 0.000 0.000 ])
+  fiducial_model(pose [ 0.010 0.000 0.000 0.000 ])
+)
+
+# map
+define floorplan model
+(
+  # sombre, sensible, artistic
+  color "gray30"
+
+  # most maps will need a bounding box
+  boundary 1
+
+  gui_nose 1
+  gui_grid 1
+  gui_move 0
+
+  boundary 1
+
+  gui_outline 1
+  gripper_return 0
+  fiducial_return 1
+  laser_return 1
+)
+
+window
+(
+  size [ 930 1023 ]
+
+  #rotate [ 0.000 -1.560 ]
+  rotate [ 0.500 0.000 ]
+  scale 415.412
+)
+
+# load an environment bitmap
+# Use the size property to set the physical size of the map
+
+# set the resolution of the underlying raytrace model in meters
+resolution 0.001
+
+interval_sim 100  # simulation timestep in milliseconds
+floorplan
+(
+  name "world"
+  bitmap "rectangle.pgm"
+  size [1.810 1.210 0.050]
+  pose [ 0.905 0.605 0.000 0.000 ]
+)
+
+# throw in robots
+mroberto( pose [ 0.200 0.120 0.000 90.000 ] color "yellow")
+mroberto( pose [ 0.393 0.120 0.000 90.000 ] color "blue")
+mroberto( pose [ 1.500 1.100 0.000 -90.000 ] color "red")
+mroberto( pose [ 1.625 1.100 0.000 -90.000 ] color "green")
+#mroberto( pose [ 0 0 0 0 ] color "blue")
+#mroberto( pose [ 0 0 0 0 ] color "red")
+#mroberto( pose [ 0 0 0 0 ] color "yellow")
+#mroberto( pose [ 0 0 0 0 ] color "blue")
+#mroberto( pose [ 0 0 0 0 ] color "red")
+#mroberto( pose [ 0 0 0 0 ] color "red")

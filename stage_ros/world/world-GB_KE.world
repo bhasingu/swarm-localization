@@ -1,0 +1,90 @@
+define block model
+(
+  size [0.005 0.005 0.005]
+  gui_nose 1
+  color "black"
+)
+
+define topurg ranger
+(
+	sensor(
+    range [ 0.0  0.1 ]
+    fov 360
+    samples 360
+  )
+
+  # generic model properties
+  color "black"
+  size [ 0.050 0.050 0.010 ]
+)
+
+define erratic position
+(
+  #size [0.415 0.392 0.25]
+  size [0.020 0.020 0.010]
+  origin [0.000 0.000 0.000 0.000]
+  gui_nose 1
+  drive "diff"
+  block(pose [ 0.005 0.000 0.000 0.000 ])
+  topurg(pose [ 0.000 0.000 0.000 0.000])
+)
+
+define floorplan model
+(
+  # sombre, sensible, artistic
+  color "gray30"
+
+  # most maps will need a bounding box
+  boundary 1
+
+  gui_nose 0
+  gui_grid 1
+
+  gui_outline 0
+  gripper_return 0
+  fiducial_return 0
+  laser_return 1
+)
+
+# set the resolution of the underlying raytrace model in meters
+resolution 0.02
+#resolution 0.01
+
+interval_sim 10  # simulation timestep in milliseconds
+
+
+window
+(
+  size [ 1855 1056 ]
+
+  rotate [ 0.000 0.000 ]
+  scale 1726.136
+)
+
+# load an environment bitmap
+floorplan
+(
+  name "willow"
+  bitmap "rectangle.pgm"
+  #size [1.500 1.500 0.100]
+  size [1.500 0.750 0.100]
+  pose [ 0.750 0.375 0.000 0.000 ]
+)
+
+# throw in 3 robots, pose in meters and degrees
+
+erratic( pose [ 0.672 0.45 0.000 90.000 ] name "era" color "blue")
+erratic( pose [ 0.750 0.45 0.000 90.000 ] name "era" color "green")
+erratic( pose [ 0.829 0.45 0.000 90.000 ] name "era" color "purple")
+
+#erratic( pose [ 0.88 0.51 0.000 180.000 ] name "era" color "blue")
+#erratic( pose [ 0.88 0.55 0.000 180.000 ] name "era" color "green")
+#erratic( pose [ 0.88 0.59 0.000 180.000 ] name "era" color "purple")
+
+#erratic( pose [ 0.672 0.64 0.000 315.000 ] name "era" color "blue")
+#erratic( pose [ 0.750 0.64 0.000 270.000 ] name "era" color "green")
+#erratic( pose [ 0.829 0.64 0.000 225.000 ] name "era" color "purple")
+
+#erratic( pose [ 0.62 0.51 0.000 0.000 ] name "era" color "blue")
+#erratic( pose [ 0.62 0.55 0.000 0.000 ] name "era" color "green")
+#erratic( pose [ 0.62 0.59 0.000 0.000 ] name "era" color "purple")
