@@ -31,10 +31,10 @@ def range_array(data_scan):
     '''
     This function extracts the range and bearing measurement values from ROS LaserScan message 
     INPUTS:
-        data_scan - ROS sensor_msgs/LaserScan datatype
+        data_scan - Laserscan; datatype: ROS type sensor_msgs/LaserScan
     OUTPUTS:
-        ranges - np.array of range measurement
-        angles - np.array of bearing measurement
+        ranges - Range measurement to environment; datatype: np.array [num_samples, 1]
+        angles - Bearing measurement to environment; datatype: np.array [num_samples, 1]
     '''
     # The range measurements array for a robot
     ranges = np.asarray(data_scan.ranges, dtype=np.float32)
@@ -60,9 +60,9 @@ def odometry_to_pose2D(pose3D):
     '''
         This function transforms the 3D pose of ROS type nav_msgs.Odometry to 2D pose of ROS type geometry_msgs.Pose2D (only applicable when operating in 2D)
         INPUTS:
-            pose3D - 3D pose of robot, ROS type nav_msgs.Odometry
+            pose3D - 3D pose of robot; datatype: ROS type nav_msgs.Odometry
         OUTPUTS:
-            pose2D - 2D pose of robot, ROS type geometry_msgs.Pose2D
+            pose2D - 2D pose of robot; datatype: ROS type geometry_msgs.Pose2D
     '''
     rot_data = pose3D.pose.pose.orientation
     pos_data = pose3D.pose.pose.position
@@ -80,9 +80,9 @@ def pose2D_to_pose(pose2D):
     '''
         This function transforms the 2D pose of ROS type geometry_msgs.Pose2D to 3D pose of ROS type geometry_msgs.Pose2D
         INPUTS:
-            pose2D - 2D pose of robot, ROS type geometry_msgs.Pose2D
+            pose2D - 2D pose of robot; datatype: ROS type geometry_msgs.Pose2D
         OUTPUTS:
-            pose - 3D pose of robot, ROS type geometry_msgs.Pose
+            pose - 3D pose of robot; datatype: ROS type geometry_msgs.Pose
     '''
     pose = Pose()
 
