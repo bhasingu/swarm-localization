@@ -1,28 +1,40 @@
 #!/usr/bin/env python
 
 '''
-    This module includes some useful helper functions
+    This module includes some useful helper functions and imports the necessary libraries
 '''
 
-import numpy as np
-import itertools
-import math
-
+#------------------------------------------
+# ros related imports
 import rospy
 from nav_msgs.msg import Odometry, OccupancyGrid, MapMetaData
 from geometry_msgs.msg import Pose2D, Pose, Quaternion
 from sensor_msgs.msg import LaserScan
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
+#------------------------------------------
+# Other library imports
+import numpy as np
+import open3d as o3d
+from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+import copy
+import math
+#------------------------------------------
 
 def wraptopi(theta):
-        return (theta + np.pi) % (2*np.pi) - np.pi
+    '''
+    This function bounds angles between [0, pi] and [-pi, 0]
+    '''
+    return (theta + np.pi) % (2*np.pi) - np.pi
     
 def range_array(data_scan):
     '''
-    This function gets a Laser_Scan message and stores the needed parameters
-    Input:
-        sensor_msgs
+    This function extracts the range and bearing measurement values from ROS LaserScan message 
+    INPUTS:
+        data_scan - ROS sensor_msgs/LaserScan datatype
+    OUTPUTS:
+        ranges - np.array of range measurement
+        angles - np.array of bearing measurement
     '''
     # The range measurements array for a robot
     ranges = np.asarray(data_scan.ranges, dtype=np.float32)
@@ -76,7 +88,7 @@ def pose2D_to_pose(pose2D):
 
     pose.position.x = pose2D.x
     pose.position.y = pose2D.y
-    pose.position.z = 0;
+    pose.position.z = 0
 
     q = quaternion_from_euler(0.0, 0.0, pose2D.theta)
     pose.orientation = Quaternion(*q)
@@ -144,87 +156,3 @@ def occupancygrid_to_numpy(msg):
 	data = np.asarray(msg.data, dtype=np.int8).reshape(msg.info.height, msg.info.width)
 
 	return np.ma.array(data, mask=data==-1, fill_value=-1)
-
-def numpy_to_occupancy_grid(arr, info=None):
-	if not len(arr.shape) == 2:
-		raise TypeError('Array must be 2D')
-	if not arr.dtype == np.int8:
-		raise TypeError('Array must be of int8s')
-
-	grid = OccupancyGrid()
-	if isinstance(arr, np.ma.MaskedArray):
-		# We assume that the masked value are already -1, for speed
-		arr = arr.data
-	grid.data = arr.ravel()
-	grid.info = info or MapMetaData()
-	grid.info.height = arr.shape[0]
-	grid.info.width = arr.shape[1]
-
-	return grid
-
-def xy2rc(x, y, resolution):
-    '''
-        This function converts the xy coordinates of a point in space to row column of a numpy array
-        it is assumed that the origin of the xy coordinates correspond with the [0,0] of the numpy array
-        INPUTS:
-            x,y - coordinates of the point in space (m)
-            resolution - resolution of numpy array (m/row or m/column)
-        OUTPUTS:
-            r, c - the related row and column of the input position
-    '''
-    c = np.floor(x/resolution).astype(int)
-    r = np.floor(y/resolution).astype(int)
-
-    return r,c
-
-def check_within_map(x, y, map, map_res):
-    '''
-        This function checks whether the positions, x and y, are within the obstacle free map region
-        INPUTS:
-            x,y - position of point, _ by 1 np array
-            map - __ by __ np array occupancy grid map
-            map_res - resolution of map (m/pixel)
-        OUPUTS:
-            bool - True if within region, false if not
-    '''
-    result = False
-
-    # checking for map boundaries
-    min_x = 0
-    min_y = 0
-    max_x = map.shape[1]*map_res
-    max_y = map.shape[0]*map_res
-
-    if (np.max(x) < max_x) and (np.max(y) < max_y) and (np.min(x) > min_x) and (np.min(y) > min_y):
-        # checking for obstacles within boundary
-        r,c = xy2rc(x,y,map_res)
-        ind = (r,c)
-        obstacles_values = map[(ind)]
-        if (np.sum(obstacles_values) == 0):
-            result = True
-
-    return result
-
-def two_pi_to_pi(angles):
-    '''
-        This function converts the angles ranging from 0 -> 2PI to ranging from -PI -> PI
-        INPUTS:
-            angles - array of angles (rad)
-        OUTPUTS:
-            angles_mod - modified angles (rad)
-    '''
-    angles_mod = np.mod(angles+np.pi,2*np.pi) - np.pi
-
-    return angles_mod
-
-def pi_to_two_pi(angles):
-    '''
-        This function converts the angles ranging from -PI -> PI to ranging from 0 -> 2PI
-        INPUTS:
-            angles - array of angles (rad), ranging from -pi to pi
-        OUTPUTS:
-            angles_mod - modified angles (rad), randing from 0 to 2pi
-    '''
-    angles_mod = np.mod(angles,2*np.pi)
-
-    return angles_mod
