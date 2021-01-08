@@ -3,27 +3,32 @@
 '''
     This module includes all necessary classes and functions for providing motion commands to stage_ros
 '''
-
-import numpy as np
-import time
-import math
-
+#------------------------------------------
+# ros related imports
 import rospy
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose2D, Pose
-
+#------------------------------------------
+# Other library imports
+import numpy as np
+import time
+import math
+#------------------------------------------
+# Import created scripts
 import helper_functions as helper
+#------------------------------------------
 
 class Motion_Inputs():
     '''
-        This class includes all necessary functions for providing motion inputs to Stage
+        This class includes all necessary functions to simulate motion in Stage-ROS
     '''
     def __init__(self, n_r, v_var, w_var, time_step):
         '''
         INPUTS:
-            n_r - number of robots in swarm
-            v_var - variance of 0 mean noise for linear velocity
-            w_var - variance of 0 mean noise for angular velocity
+            n_r - Number of robots in swarm; datatype: int
+            v_var - Variance of 0 mean noise for linear velocity; datatype: float
+            w_var - Variance of 0 mean noise for angular velocity; datatype: float
+            time_step - Duration of time-step (seconds); datatype: float
         '''
 
         self.n_r = n_r
@@ -64,11 +69,12 @@ class Motion_Inputs():
         '''
         This function adds noise to the motion commands and teleports robots to their respective positions in the Stage simulator
         INPUTS:
-        C_c - swarm's current configuration
-        travel_dist_desired - desired travel distance for all robots (m), n_r by 1 matrix
-        turn_angle_desired - desired turn angle for all robots (rad), n_r by 1 matrix
+        C_c - Current position of robots in the environment; datatype: np.array [number of robots = 4, 3]
+        v_k - Linear velocity input for robot; datatype: float
+        w_k - Angular velocity input for robot; datatype: float
+        robot_num - The ID number of robot that needs to be moved
         OUTPUTS:
-        C_achieved - the true achieved configuration of the swarm
+        C_achieved - Position of robots after movement in the environment
         '''
 
         # add noise
