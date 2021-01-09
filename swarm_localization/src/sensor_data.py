@@ -22,12 +22,14 @@ class Sensor_Data:
     def __init__(self, n_r, n_samples, n_samples_keep, inter_r_var, inter_b_var, outer_r_var, outer_b_var, max_sensing_range):
         '''
         INPUTS:
-            n_r - number of robots in swarm
-            n_samples - number of samples in the laser scan of each robot
-            inter_r_var - variance for zero-mean noise that is added to the range measurement for inter-robot sensing
-            inter_b_var - variance for zero-mean noise that is added to the bearing measurement for inter-robot sensing
-            outer_r_var - variance for zero-mean noise that is added to the range measurement for outer-robot sensing
-            outer_b_var - variance for zero-mean noise that is added to the bearing measurement for outer-robot sensing
+            n_r - Number of robots in swarm; datatype: int
+            n_samples - Number of samples in the laser scan of each robot from Stage_ROS; datatype: int
+            n_samples_keep - Number of samples we want to retain; datatype: int
+            inter_r_var - Variance for zero-mean noise that is added to the range measurement for inter-robot sensing; datatype: float
+            inter_b_var - Variance for zero-mean noise that is added to the bearing measurement for inter-robot sensing; datatype: float
+            outer_r_var - Variance for zero-mean noise that is added to the range measurement for outer-robot sensing; datatype: float
+            outer_b_var - Variance for zero-mean noise that is added to the bearing measurement for outer-robot sensing; datatype: float
+            max_sensing_range - Maximum sensing range of the laser scan; datatype: float
         '''
 
         self.n_r = n_r
@@ -43,13 +45,10 @@ class Sensor_Data:
         self.C_k_true = np.zeros((self.n_r,3))
 
         # inter-robot sensing data
-        self.prox_data = np.zeros((self.n_r,self.n_r))
-        self.bear_data = np.zeros((self.n_r,self.n_r))
-
-        self.prox_data_outer = np.zeros((self.n_r,self.n_r))
-        self.bear_data_outer = np.zeros((self.n_r,self.n_r))
-        self.prox_data_outer_v2 = np.zeros((self.n_r,self.n_r))
-        self.bear_data_outer_v2 = np.zeros((self.n_r,self.n_r))
+        # self.prox_data = np.zeros((self.n_r,self.n_r))
+        # self.bear_data = np.zeros((self.n_r,self.n_r))
+        self.prox_data = None
+        self.bear_data = None
 
         # outer-robot measurement data, clean is data without noise
         self.outer_range = np.zeros((self.n_r,self.n_samples_keep))
@@ -58,15 +57,13 @@ class Sensor_Data:
         # map data
         self.map = []
         self.map_meta_data = MapMetaData()
-        self.r_k = None
-        self.b_k = None
 
     def get_data(self):
         '''
         This function subscribes to all the respective topics to get all the sensor data
         '''
         self.get_GPS_data()
-        self.simulate_inter_robot_sensing()
+        # self.simulate_inter_robot_sensing()
         self.get_range_data()
 
     def get_GPS_data(self):
@@ -124,116 +121,13 @@ class Sensor_Data:
         self.map = helper.occupancygrid_to_numpy(data)
         self.map_meta_data = rospy.wait_for_message("map_metadata", MapMetaData)
 
-    def simulate_inter_robot_sensing(self):
+    def simulate_inter_robot_sensing(self, X_k_hat, X_k_true, robot_num):
         '''
             This function simulates inter-robot sensing data, describing the relative bearing and distance between robots
             INPUTS:
-                None
-            OUTPUTS:
-                None - self.prox_data and self.bear_data are updated
-        '''
-
-        # get GPS data from stage
-        self.get_GPS_data()
-
-        x_data = self.C_k_true[:,0].reshape(-1,1)
-        y_data = self.C_k_true[:,1].reshape(-1,1)
-        theta_data = self.C_k_true[:,2].reshape(-1,1)
-
-        # calculate inter-robot distance in cartesian coordinations
-        dxs = x_data.T - x_data
-        dys = y_data.T - y_data
-
-        # transform to polar coordinations
-        prox_data_temp, bear_data_temp = helper.cart2pol(dxs,dys)
-
-        # add noise
-        prox_data = prox_data_temp + np.random.normal(0, (10*self.inter_r_var/3)/1000, (self.n_r, self.n_r))
-        bear_data = bear_data_temp - theta_data + np.random.normal(0, (10*self.inter_b_var/3)*np.pi/180, (self.n_r, self.n_r))
-
-        # get rid of unnecessary data
-        prox_data = prox_data - np.diag(np.diag(prox_data))
-        bear_data = bear_data - np.diag(np.diag(bear_data))
-
-        self.prox_data = prox_data
-        self.bear_data = bear_data
-    
-    def simulate_inter_robot_sensing_outer(self, X_k_hat_outer):
-        '''
-            This function simulates inter-robot sensing data, describing the relative bearing and distance between robots
-            INPUTS:
-                None
-            OUTPUTS:
-                None - self.prox_data and self.bear_data are updated
-        '''
-
-        x_data = X_k_hat_outer[:,0].reshape(-1,1)
-        y_data = X_k_hat_outer[:,1].reshape(-1,1)
-        theta_data = X_k_hat_outer[:,2].reshape(-1,1)
-
-        # calculate inter-robot distance in cartesian coordinations
-        dxs = x_data.T - x_data
-        dys = y_data.T - y_data
-
-        # transform to polar coordinations
-        prox_data_temp, bear_data_temp = helper.cart2pol(dxs,dys)
-
-        # add noise
-        prox_data = prox_data_temp + np.random.normal(0, (10*self.inter_r_var/3)/1000, (self.n_r, self.n_r))
-        bear_data = bear_data_temp - theta_data + np.random.normal(0, (10*self.inter_b_var/3)*np.pi/180, (self.n_r, self.n_r))
-
-        # get rid of unnecessary data
-        prox_data = prox_data - np.diag(np.diag(prox_data))
-        bear_data = bear_data - np.diag(np.diag(bear_data))
-
-        self.prox_data_outer = prox_data
-        self.bear_data_outer = bear_data
-
-    def simulate_inter_robot_sensing_outer_v2(self, X_k_hat, X_k_true):
-        '''
-            This function simulates inter-robot sensing data, describing the relative bearing and distance between robots
-            INPUTS:
-                None
-            OUTPUTS:
-                None - self.prox_data and self.bear_data are updated
-        '''
-
-        x_data_hat = X_k_hat[:,0].reshape(-1,1)
-        y_data_hat = X_k_hat[:,1].reshape(-1,1)
-        theta_data_hat = X_k_hat[:,2].reshape(-1,1)
-
-        x_data_true = X_k_true[:,0].reshape(-1,1)
-        y_data_true = X_k_true[:,1].reshape(-1,1)
-        # theta_data_true = X_k_true[:,2].reshape(-1,1)
-
-        # calculate inter-robot distance in cartesian coordinations
-        # dxs = x_data_hat.T - x_data_true
-        # dys = y_data_hat.T - y_data_true
-        dxs = x_data_hat.T - x_data_true
-        dys = y_data_hat.T - y_data_true
-
-        # transform to polar coordinations
-        prox_data_temp, bear_data_temp = helper.cart2pol(dxs,dys)
-        for i in range(np.shape(X_k_hat)[0]):
-            for j in range(np.shape(X_k_hat)[0]):
-                bear_data_temp[j, i] = helper.wraptopi(bear_data_temp[j, i])
-
-        # add noise
-        prox_data = prox_data_temp + np.random.normal(0, (10*self.inter_r_var/3)/1000, (self.n_r, self.n_r))
-        bear_data = bear_data_temp - theta_data_hat + np.random.normal(0, (10*self.inter_b_var/3)*np.pi/180, (self.n_r, self.n_r))
-
-        # get rid of unnecessary data
-        prox_data = prox_data - np.diag(np.diag(prox_data))
-        bear_data = bear_data - np.diag(np.diag(bear_data))
-
-        self.prox_data_outer_v2 = prox_data
-        self.bear_data_outer_v2 = bear_data
-
-    def simulate_inter_robot_sensing_outer_v3(self, X_k_hat, X_k_true, robot_num):
-        '''
-            This function simulates inter-robot sensing data, describing the relative bearing and distance between robots
-            INPUTS:
-                None
+                X_k_hat - Pose estimates for all robots current time-step; datatype: np.array[number_robots = 4, 3]
+                X_k_true - True pose for all robots current time-step; datatype: np.array[number_robots = 4, 3]
+                robot_num - robot of interest; datatype: int
             OUTPUTS:
                 None - self.prox_data and self.bear_data are updated
         '''
@@ -245,5 +139,5 @@ class Sensor_Data:
             r_k[i, 0] = math.sqrt(pow(dx, 2) + pow(dy, 2)) + np.random.normal(0, self.inter_r_var)
             b_k[i, 0] = math.atan2(dy, dx) - X_k_hat[robot_num, 2] + np.random.normal(0, self.inter_b_var)
             b_k[i, 0] = helper.wraptopi(b_k[i, 0])
-        self.r_k = r_k
-        self.b_k = b_k
+        self.prox_data = r_k
+        self.bear_data = b_k
