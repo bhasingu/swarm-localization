@@ -3,19 +3,24 @@
 '''
     This module handles landmark detection for the localization of the swarm
 '''
-
-import numpy as np
-import itertools
-import math
-
+#------------------------------------------
+# ros related imports
 import rospy
 from nav_msgs.msg import Odometry, OccupancyGrid, MapMetaData
 from geometry_msgs.msg import Pose2D, Pose, Quaternion
 from sensor_msgs.msg import LaserScan
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
+#------------------------------------------
+# Other library imports
+import numpy as np
+import itertools
+import math
 from sklearn import mixture
 from sklearn.linear_model import LinearRegression
+#------------------------------------------
+# Import created scripts
 import helper_functions as helper
+#------------------------------------------
 
 def groupCluster(pcd):
     '''
