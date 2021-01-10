@@ -19,10 +19,11 @@ import helper_functions as helper
 
 def groupCluster(pcd):
     '''
-    Seperate Point Cloud into Clusters
-    Input: Open3D pointcloud
-    Output: Numpy num_cluster x num_point x 2 : pointcloud cluster
-            Numpy num_potentail_lm x 2 : potential landmark at change for cluster
+    This function clusters point-cloud data into 2 groups (each group representing an edge in the environment)
+    Input:
+        pcd - Point-cloud; datatype: Open3D pointcloud
+    Output:
+        ptc - Pointcloud cluster; datatype: np.array [num_cluster, num_point, 2]
     '''
     # Label for each point in pointcloud
     # eps is the min distance for point in same cluster
@@ -49,11 +50,12 @@ def my_round(x, prec=2, base=0.1):
 
 def HoughLines(pcd):
     '''
-    Find lines with HoughTransform for line equation
-    need to set threshold for how many vote for it to be consider line
-    will depend on number of sample available
-    Input: Numpy num_point x 2 : pointcloud cluster
-    Output: {(rho, theta) : num_vote} dictionary : Lines
+    Extract lines from clustered point-cloud using Hougg Line Transform.
+    Need to set threshold for how many vote for a line extracted to be considered as a candidate.
+    Input:
+        Numpy num_point x 2 : pointcloud cluster
+    Output: 
+        {(rho, theta) : num_vote} dictionary : Lines
     '''
     lines = {}
     threshold = 5
@@ -282,7 +284,6 @@ def point_based_matching(P, Q):
     Q - Associated data points from known map
     :return: the rotation angle and the 2D translation (x, y) to be applied for matching the given pairs of points
     '''
-
     x_mean = 0
     y_mean = 0
     xp_mean = 0
