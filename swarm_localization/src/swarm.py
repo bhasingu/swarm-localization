@@ -122,37 +122,3 @@ class Swarm:
             self.C_t_init = C_t_init
         print("C_t_init shape: ")
         return C_t_init
-
-    def init_random_configuration_map(self, min_dist, map, map_res):
-        '''
-            This function randomly initializes the configuration of the swarm within the boundary of the given map, while also considering obstacles
-            INPUTS:
-                min_dist - minimum distance between robots for initialization
-                map - occupancy grid map of the world, __ by __ np array
-                map_res - resolution of the map (m/pixel)
-            OUTPUTS:
-                C_t_init - swarm's initial true configuration
-        '''
-
-        # randomly initialize:
-        C_t_init = self.init_random_configuration(min_dist)
-
-        # move swarm within free map region
-        min_x = 0
-        min_y = 0
-        max_x = map.shape[1]*map_res
-        max_y = map.shape[0]*map_res
-
-        found = False
-        while found is False:
-            # randomly translate swarm
-            x_temp = np.random.uniform(min_x, max_x)
-            y_temp = np.random.uniform(min_y, max_y)
-            C_t_init_temp = C_t_init[:,0:2] + np.array([x_temp, y_temp])
-
-            # check if within map bounds
-            found = helper.check_within_map(C_t_init_temp[:,0], C_t_init_temp[:,1], map, map_res)
-
-        C_t_init[:,0:2] = C_t_init_temp
-
-        return C_t_init

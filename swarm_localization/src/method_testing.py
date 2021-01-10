@@ -20,14 +20,13 @@ import math
 #------------------------------------------
 # Import created scripts
 import helper_functions as helper
-from swarm import Swarm, Robot
 from sensor_data import Sensor_Data
 import localization as localization
 import landmark_detection as landmark_detection
 from motion_inputs import Motion_Inputs
 import motion_commands as motion_commands
 import plot as plot
-
+#------------------------------------------
 
 def method_testing():
 
@@ -90,9 +89,6 @@ def method_testing():
     # Get sensor data from robots to get intial sensor readings
     sensor_data = Sensor_Data(n_r, n_samples, n_samples_keep, inter_r_var, inter_b_var, outer_r_var, outer_b_var, max_sensing_range)
     sensor_data.get_data()
-    
-    swarm = Swarm(n_r, copy.deepcopy(sensor_data.C_k_true), v_var, w_var, inter_r_var, inter_b_var, outer_r_var, outer_b_var, time_step)
-    swarm.update_robot_pose(copy.deepcopy(swarm.C_t_init))
 
     print("Ground truth pose")
     print(sensor_data.C_k_true)
@@ -129,8 +125,8 @@ def method_testing():
                 if j != robot_num:
                     valid_index_inter.append(j)
 
-            sensor_data.simulate_inter_robot_sensing_outer_v3(X_k_1_hat, X_k_true, robot_num)
-            x, y =helper.pol2cart(copy.deepcopy(sensor_data.r_k), copy.deepcopy(sensor_data.b_k))
+            sensor_data.simulate_inter_robot_sensing(X_k_1_hat, X_k_true, robot_num)
+            x, y =helper.pol2cart(copy.deepcopy(sensor_data.prox_data), copy.deepcopy(sensor_data.bear_data))
 
             for k, index in enumerate(valid_index_inter):
                 q[k, 0] = x[index][0]
@@ -147,8 +143,8 @@ def method_testing():
             X_k_check[robot_num,:], P_k_check[3*robot_num:3*robot_num+3,:] = ekf_i.predict(X_k_1_hat[robot_num,:].reshape((3,1)), P_k_1_hat[3*robot_num:3*robot_num+3,:], v_k, w_k)
            
             sensor_data.get_data()
-            sensor_data.simulate_inter_robot_sensing_outer_v3(X_k_check, X_k_true, robot_num)
-            x, y = helper.pol2cart(copy.deepcopy(sensor_data.r_k), copy.deepcopy(sensor_data.b_k))
+            sensor_data.simulate_inter_robot_sensing(X_k_check, X_k_true, robot_num)
+            x, y = helper.pol2cart(copy.deepcopy(sensor_data.prox_data), copy.deepcopy(sensor_data.bear_data))
             for k, index in enumerate(valid_index_inter):
                 p[k, 0] = x[index][0]
                 p[k, 1] = y[index][0]
