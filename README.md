@@ -1,6 +1,7 @@
 # Project description
 
 - 2D localization for a swarm of milli-robots is simulated in a known environement using inter-robot communication and laser range scans of the environment.
+- Extended kalman filter and point-cloud alignment algorithms used in the state estimation process
 
 # System Requirements and Installations
 
