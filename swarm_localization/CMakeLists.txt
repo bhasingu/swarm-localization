@@ -171,6 +171,7 @@ catkin_install_python(PROGRAMS
   src/motion_inputs.py
   src/motion_commands.py
   src/plot.py
+  src/method_testing.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
